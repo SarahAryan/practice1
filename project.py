@@ -90,7 +90,6 @@ else:
     optimizer = torch.optim.Adam(model.parameters(), lr=0.0005)
     criterion = nn.BCEWithLogitsLoss(pos_weight=pos_weight)
 
-    
     for epoch in range(100):
         model.train()
         for b_x, b_y in train_loader:
