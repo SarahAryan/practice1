@@ -17,9 +17,6 @@ warnings.filterwarnings('ignore')
 input_file = "/content/drive/MyDrive/sample_records.csv"
 outcome_col = "metadata.conclusion"
 
-# ==========================================
-# ۲. بارگذاری و کالبدشکافی داده‌ها
-# ==========================================
 if not os.path.exists(input_file):
     raise FileNotFoundError(f"فایل در مسیر {input_file} یافت نشد!")
 
@@ -30,10 +27,8 @@ print("--- گزارش وضعیت اولیه داده‌ها ---")
 print(df[outcome_col].value_counts())
 print("--------------------------------")
 
-# تبدیل هدف به عدد (شکست = ۱، بقیه = ۰)
 df['target'] = df[outcome_col].apply(lambda x: 1 if str(x).lower() == 'failure' else 0)
 
-# کدگذاری ستون‌های کلیدی
 highlighted_features = ["repository_name", "metadata.workflow_id", "metadata.event", "metadata.actor.login"]
 label_encoders = {}
 for col in highlighted_features:
@@ -41,9 +36,6 @@ for col in highlighted_features:
     df[col] = le.fit_transform(df[col].fillna('MISSING').astype(str))
     label_encoders[col] = le
 
-# ==========================================
-# ۳. ساخت توالی‌ها و حل مشکل کمبود Failure
-# ==========================================
 df = df.sort_values(by=["repository_name", "metadata.run_started_at"])
 X_seq, y_seq = [], []
 
@@ -58,7 +50,6 @@ y_seq = np.array(y_seq)
 print(f"\nتعداد کل توالی‌های ساخته شده: {len(y_seq)}")
 print(f"تعداد شکست‌ها در توالی‌ها: {sum(y_seq)}")
 
-# اگر تعداد شکست‌ها خیلی کم باشد، مدل نمی‌تواند تست شود
 if sum(y_seq) < 2:
     print("⚠️ خطا: تعداد شکست‌ها برای آموزش و تست کافی نیست! (حداقل ۲ مورد نیاز است)")
 else:
@@ -70,9 +61,6 @@ else:
     print(f"تعداد شکست در آموزش: {sum(y_train)}")
     print(f"تعداد شکست در تست: {sum(y_test)}")
 
-    # ==========================================
-    # ۴. مدل و آموزش با وزن‌دهی سنگین
-    # ==========================================
     pos_weight = torch.tensor([(len(y_train) - sum(y_train)) / (sum(y_train) + 1e-6)])
 
     class SequenceDataset(Dataset):
@@ -102,7 +90,7 @@ else:
     optimizer = torch.optim.Adam(model.parameters(), lr=0.0005)
     criterion = nn.BCEWithLogitsLoss(pos_weight=pos_weight)
 
-    # آموزش
+    
     for epoch in range(100):
         model.train()
         for b_x, b_y in train_loader:
@@ -111,9 +99,7 @@ else:
             loss.backward()
             optimizer.step()
 
-    # ==========================================
-    # ۵. ارزیابی نهایی و تحلیل شکست
-    # ==========================================
+    
     model.eval()
     preds, actuals = [], []
     with torch.no_grad():
