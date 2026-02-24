@@ -80,11 +80,6 @@ The `metadata.conclusion` column must contain values such as:
 input_file = "path/to/sample_records.csv"
 ```
 
-3. Run:
-
-```bash
-python main.py
-```
 
 ---
 
